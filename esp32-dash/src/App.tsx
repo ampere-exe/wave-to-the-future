@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Card } from "@/components/ui/card" 
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts';
 
 interface SensorData {
@@ -20,11 +26,18 @@ interface SensorData {
 }
 
 interface HistoryEntry {
-  rpm: number;
   time: string;
+  rpm: number;
+  tds: number;
+  accelX: number;
+  accelY: number;
+  accelZ: number;
+  gyroX: number;
+  gyroY: number;
+  gyroZ: number;
 }
 
-const ESP_IP = 'http://10.0.0.39'; // ESP32 IP 
+const ESP_IP = 'http://10.0.0.39';
 
 export default function App() {
   const [data, setData] = useState<SensorData | null>(null);
@@ -37,10 +50,21 @@ export default function App() {
         const json: SensorData = await res.json();
         setData(json);
 
-        setHistory((h) => {
-          const newHistory = [...h, { rpm: json.rpm, time: new Date().toLocaleTimeString() }];
-          if (newHistory.length > 20) newHistory.shift();
-          return newHistory;
+        setHistory((prev) => {
+          const entry: HistoryEntry = {
+            time: new Date().toLocaleTimeString(),
+            rpm: json.rpm,
+            tds: json.tds,
+            accelX: json.accel.x,
+            accelY: json.accel.y,
+            accelZ: json.accel.z,
+            gyroX: json.gyro.x,
+            gyroY: json.gyro.y,
+            gyroZ: json.gyro.z,
+          };
+          const updated = [...prev, entry];
+          if (updated.length > 20) updated.shift();
+          return updated;
         });
       } catch (e) {
         console.error('Fetch error', e);
@@ -48,35 +72,61 @@ export default function App() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 2000); // every 2 seconds
-
+    const interval = setInterval(fetchData, 2000);
     return () => clearInterval(interval);
   }, []);
 
   if (!data) return <div className="p-4">Loading...</div>;
 
-  return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      <Card className="p-4">
-        <h2 className="text-lg font-bold mb-2">Current Sensor Data</h2>
-        <p><strong>TDS:</strong> {data.tds}</p>
-        <p><strong>RPM:</strong> {data.rpm.toFixed(2)}</p>
-        <p><strong>Accel:</strong> x={data.accel.x}, y={data.accel.y}, z={data.accel.z}</p>
-        <p><strong>Gyro:</strong> x={data.gyro.x}, y={data.gyro.y}, z={data.gyro.z}</p>
-      </Card>
+  const renderChart = (
+    title: string,
+    lines: { key: keyof HistoryEntry; color: string }[]
+  ) => (
+    <Card className="flex-1 h-[340px] min-w-[400px]">
+      <CardContent className="p-4 h-full">
+        <h2 className="text-lg font-bold mb-2">{title}</h2>
+        <div className="w-full h-[220px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={history}>
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {lines.map(({ key, color }) => (
+                <Line
+                  key={key}
+                  type="monotone"
+                  dataKey={key}
+                  stroke={color}
+                  dot={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
-      <Card className="p-4">
-        <h2 className="text-lg font-bold mb-2">RPM Over Time</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={history}>
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="rpm" stroke="#4f46e5" />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
+  return (
+    <div className=" p-4 ">
+      <div className="flex justify-center">
+        <h1 className="text-2xl font-semibold">Wave to the Future System Dashboard</h1>
+      </div>
+      <div className="flex flex-wrap gap-5 justify-center mt-10 mr-10 ml-10 overflow-x-hidden">
+        {renderChart('RPM', [{ key: 'rpm', color: '#4f46e5' }])}
+        {renderChart('TDS', [{ key: 'tds', color: '#22c55e' }])}
+        {renderChart('Accel', [
+          { key: 'accelX', color: '#ef4444' },
+          { key: 'accelY', color: '#f59e0b' },
+          { key: 'accelZ', color: '#10b981' },
+        ])}
+        {renderChart('Gyro', [
+          { key: 'gyroX', color: '#8b5cf6' },
+          { key: 'gyroY', color: '#ec4899' },
+          { key: 'gyroZ', color: '#0ea5e9' },
+        ])}
+      </div>
     </div>
   );
 }
