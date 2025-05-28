@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   LineChart,
   Line,
@@ -7,22 +8,14 @@ import {
   YAxis,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-} from 'recharts';
+  ResponsiveContainer
+} from "recharts";
 
 interface SensorData {
   tds: number;
   rpm: number;
-  accel: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  gyro: {
-    x: number;
-    y: number;
-    z: number;
-  };
+  accel: { x: number; y: number; z: number };
+  gyro: { x: number; y: number; z: number };
 }
 
 interface HistoryEntry {
@@ -35,9 +28,10 @@ interface HistoryEntry {
   gyroX: number;
   gyroY: number;
   gyroZ: number;
+  voltage?: number; // New field
 }
 
-const ESP_IP = 'http://10.0.0.39';
+const ESP_IP = "http://10.0.0.39";
 
 export default function App() {
   const [data, setData] = useState<SensorData | null>(null);
@@ -61,13 +55,14 @@ export default function App() {
             gyroX: json.gyro.x,
             gyroY: json.gyro.y,
             gyroZ: json.gyro.z,
+            voltage: 0.06 * json.rpm // Calculate voltage
           };
           const updated = [...prev, entry];
           if (updated.length > 20) updated.shift();
           return updated;
         });
       } catch (e) {
-        console.error('Fetch error', e);
+        console.error("Fetch error", e);
       }
     };
 
@@ -109,22 +104,46 @@ export default function App() {
   );
 
   return (
-    <div className=" p-4 ">
-      <div className="flex justify-center">
-        <h1 className="text-2xl font-semibold">Wave to the Future System Dashboard</h1>
+    <div className="p-4">
+      {/* Nav bar */}
+      <div
+        className="flex rounded-4xl items-center justify-between text-orange-100 px-6 py-4 shadow mb-6"
+        style={{ backgroundColor: "#081c44" }}
+      >
+        <div className="flex items-center space-x-3">
+          {/* Logo */}
+          <div className="bg-white rounded-full w-15 h-15 flex items-center justify-center text-black font-bold text-sm">
+            <img src="/logo.png" alt="Wave to the Future logo" />
+          </div>
+          <h2 className="font-semibold text-2xl">Wave to the Future</h2>
+        </div>
+        <div className="flex-col w-48 mr-10 mt-2">
+          <Progress value={80} />
+          <span className="text-sm text-gray-300 mt-1 block text-right">
+            Filter Health: 80%
+          </span>
+        </div>
+      </div>
+
+      {/* Main graphs */}
+      <div className="flex-row justify-self-center pt-2">
+        <div className="text-4xl font-semibold">System dashboard</div>
       </div>
       <div className="flex flex-wrap gap-5 justify-center mt-10 mr-10 ml-10 overflow-x-hidden">
-        {renderChart('RPM', [{ key: 'rpm', color: '#4f46e5' }])}
-        {renderChart('TDS', [{ key: 'tds', color: '#22c55e' }])}
-        {renderChart('Accel', [
-          { key: 'accelX', color: '#ef4444' },
-          { key: 'accelY', color: '#f59e0b' },
-          { key: 'accelZ', color: '#10b981' },
+        {renderChart("RPM", [{ key: "rpm", color: "#4f46e5" }])}
+        {renderChart("TDS", [{ key: "tds", color: "#22c55e" }])}
+        {renderChart("Accel", [
+          { key: "accelX", color: "#ef4444" },
+          { key: "accelY", color: "#f59e0b" },
+          { key: "accelZ", color: "#10b981" }
         ])}
-        {renderChart('Gyro', [
-          { key: 'gyroX', color: '#8b5cf6' },
-          { key: 'gyroY', color: '#ec4899' },
-          { key: 'gyroZ', color: '#0ea5e9' },
+        {renderChart("Gyro", [
+          { key: "gyroX", color: "#8b5cf6" },
+          { key: "gyroY", color: "#ec4899" },
+          { key: "gyroZ", color: "#0ea5e9" }
+        ])}
+        {renderChart("Generated Voltage", [
+          { key: "voltage", color: "#f97316" } // orange-500
         ])}
       </div>
     </div>
