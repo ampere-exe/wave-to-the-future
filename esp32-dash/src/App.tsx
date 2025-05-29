@@ -89,7 +89,7 @@ export default function App() {
   };
 
   // Temp fix
-  // if (!data) return <div className="p-4 flex font-semibold justify-center">Loading...</div>;
+  if (!data) return <div className="p-4 flex font-semibold justify-center">Loading...</div>;
 
   const renderChart = (
     title: string,
