@@ -41,8 +41,6 @@ export default function App() {
     const fetchData = async () => {
       try {
         const res = await fetch(`${ESP_IP}/api/data`);
-        if (!res.ok) throw new Error("ESP32 not connected");
-
         const json: SensorData = await res.json();
         setData(json);
 
@@ -62,8 +60,7 @@ export default function App() {
           return [...prev, entry];
         });
       } catch (e) {
-        console.warn("ESP32 not reachable, showing empty charts.");
-        setData(null);
+        console.error("Fetch error", e);
       }
     };
 
@@ -76,7 +73,9 @@ export default function App() {
     if (!history.length) return;
 
     const header = Object.keys(history[0]).join(",");
-    const rows = history.map(row => Object.values(row).join(","));
+    const rows = history.map(row =>
+      Object.values(row).join(",")
+    );
     const csvContent = [header, ...rows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -89,6 +88,7 @@ export default function App() {
     link.click();
     document.body.removeChild(link);
   };
+
 
   const renderChart = (
     title: string,
@@ -107,8 +107,8 @@ export default function App() {
               {lines.map(({ key, color }) => (
                 <Line
                   key={key}
-                  dataKey={key}
                   type="monotone"
+                  
                   stroke={color}
                   dot={false}
                 />
