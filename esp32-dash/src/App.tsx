@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { LocationCard } from "./LocationCard";
 import {
   LineChart,
   Line,
@@ -73,9 +74,7 @@ export default function App() {
     if (!history.length) return;
 
     const header = Object.keys(history[0]).join(",");
-    const rows = history.map(row =>
-      Object.values(row).join(",")
-    );
+    const rows = history.map((row) => Object.values(row).join(","));
     const csvContent = [header, ...rows].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -89,6 +88,8 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  // Temp fix
+  // if (!data) return <div className="p-4 flex font-semibold justify-center">Loading...</div>;
 
   const renderChart = (
     title: string,
@@ -105,13 +106,7 @@ export default function App() {
               <Tooltip />
               <Legend />
               {lines.map(({ key, color }) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  
-                  stroke={color}
-                  dot={false}
-                />
+                <Line key={key} type="monotone" stroke={color} dot={false} />
               ))}
             </LineChart>
           </ResponsiveContainer>
@@ -170,6 +165,9 @@ export default function App() {
           { key: "voltage", color: "#f97316" }
         ])}
       </div>
+
+      {/* Google Map */}
+      <LocationCard />
     </div>
   );
 }
