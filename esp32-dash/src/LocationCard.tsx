@@ -8,7 +8,7 @@ export function LocationCard() {
   );
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyD7cXxEgRavaLmeapx6ZWe7ZIfQBmNNeVc",
+    googleMapsApiKey: import.meta.env.VITE_MAPS_API_KEY,
   });
 
   useEffect(() => {

@@ -89,7 +89,7 @@ export default function App() {
   };
 
   // Temp fix
-  if (!data) return <div className="p-4 flex font-semibold justify-center">Loading...</div>;
+  if (!data) return (<div className="p-4 flex font-semibold justify-center">Loading...</div>);
 
   const renderChart = (
     title: string,
@@ -106,7 +106,13 @@ export default function App() {
               <Tooltip />
               <Legend />
               {lines.map(({ key, color }) => (
-                <Line key={key} type="monotone" stroke={color} dot={false} />
+                <Line
+                  key={key}
+                  dataKey={key}
+                  type="monotone"
+                  stroke={color}
+                  dot={false}
+                />
               ))}
             </LineChart>
           </ResponsiveContainer>
